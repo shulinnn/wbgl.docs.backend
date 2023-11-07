@@ -1,0 +1,148 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  // If you want to use Prisma Migrate, you will need to manually create a shadow database
+  // https://neon.tech/docs/guides/prisma-migrate#configure-a-shadow-database-for-prisma-migrate
+  // make sure to append ?connect_timeout=10 to the connection string
+  // shadowDatabaseUrl = env(“SHADOW_DATABASE_URL”)
+}
+
+enum AttackType {
+  Melee
+  AntiAir
+}
+
+enum MapType {
+  M1
+  M2
+  M3
+  M4
+}
+
+model Race {
+  id              Int        @id @default(autoincrement())
+  race_name       String
+  race_icon       String
+  race_background String
+  RaceSpell       RaceSpell?
+  created_at      DateTime   @default(now())
+  updated_at      DateTime   @updatedAt
+  Unit            Unit[]
+  Hero            Hero[]
+  Building        Building[]
+}
+
+model RaceSpell {
+  id                Int      @id @default(autoincrement())
+  spell_name        String
+  spell_icon        String
+  spell_description String
+  Race              Race     @relation(fields: [raceId], references: [id])
+  raceId            Int      @unique
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+}
+
+model Hero {
+  id          Int         @id @default(autoincrement())
+  hero_name   String
+  hero_icon   String
+  attack_type AttackType
+  hero_cost   Int
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @updatedAt
+  Spell       HeroSpell[]
+  Race        Race?       @relation(fields: [raceId], references: [id])
+  raceId      Int?
+}
+
+model FrequentlyAskedQuestion {
+  id                   Int      @id @default(autoincrement())
+  question_heading     String
+  question_description String
+  question_answer      String
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+}
+
+model HeroSpell {
+  id                Int      @id @default(autoincrement())
+  spell_name        String
+  spell_icon        String
+  spell_description String
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+  Hero              Hero?    @relation(fields: [heroId], references: [id])
+  heroId            Int?
+}
+
+model Map {
+  id              Int      @id @default(autoincrement())
+  map_name        String   @unique
+  map_description String
+  map_creator     String
+  map_image       String
+  map_type        MapType
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+}
+
+model UnitSpell {
+  id                Int      @id @default(autoincrement())
+  spell_name        String
+  spell_icon        String
+  spell_description String
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+  Unit              Unit?    @relation(fields: [unitId], references: [id])
+  unitId            Int?
+}
+
+model Card {
+  id               Int      @id @default(autoincrement())
+  card_name        String
+  card_icon        String
+  card_description String
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+}
+
+///todo creeps
+
+model Unit {
+  id             Int         @id @default(autoincrement())
+  unit_name      String
+  unit_icon      String
+  unit_race      Race        @relation(fields: [raceId], references: [id])
+  unit_cost_gold Int
+  unit_cost_wood Int
+  unit_is_summon Boolean
+  Spell          UnitSpell[]
+  raceId         Int
+  /// Shouldf add building relation later
+  created_at     DateTime    @default(now())
+  updated_at     DateTime    @updatedAt
+  Building       Building?   @relation(fields: [buildingId], references: [id])
+  buildingId     Int?
+}
+
+model Building {
+  id                   Int      @id @default(autoincrement())
+  building_name        String
+  building_description String
+  building_cost_gold   Int
+  building_cost_wood   Int
+  Unit                 Unit[]
+  Race                 Race?    @relation(fields: [raceId], references: [id])
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+  raceId               Int?
+}
